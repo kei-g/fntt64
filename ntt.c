@@ -273,7 +273,8 @@ static void unpack(uint64_t *__restrict dst, const uint64_t *__restrict src) {
     carry = (uint64_t)(x.value >> 63);
     tmp[i] = x.lo & 0x7fffffffffffffff;
   }
+
   // unpack from 64 63bits-integers to 63 64bits-integers
-  for (int i = 0, j = 63; i < 63; i++, j--)
-    dst[i] = (tmp[i] & ((1ul << j) - 1)) | (tmp[i + 1] << j);
+  for (long i = 0, j = 63, k = 0x7fffffffffffffff; i < 63; i++, j--, k >>= 1)
+    dst[i] = (tmp[i] & k) | (tmp[i + 1] << j);
 }
