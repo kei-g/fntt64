@@ -7,6 +7,7 @@
   #define ASSERT(expr)
 #endif
 
+#include <gmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -119,13 +120,30 @@ int main(int argc, const char *argv[]) {
   }
   putchar('\n');
 
+  mpz_t f2, g2, fg2;
+  mpz_roinit_n(f2, src, 15);
+  mpz_roinit_n(g2, src + 15, 15);
+  mpz_init(fg2);
+  mpz_mul(fg2, f2, g2);
+  const mp_limb_t *fgp = mpz_limbs_read(fg2);
+  size_t len = mpz_size(fg2);
+  fputs("[GMP]\n", stdout);
+  for (size_t i = 0; i < len; i++)
+    printf("%16zx%c", fgp[i], (i & 3) == 3 ? '\n' : ' ');
+  if (len & 3)
+    putchar('\n');
+  putchar('\n');
+
 #ifdef _TEST
 #else
   uint64_t result[30];
   fputs("[result]\n", stdout);
   join(result, fg);
-  for (size_t i = 0; i < countof(result); i++)
-    printf("%16lx%c", result[i], (i & 3) == 3 ? '\n' : ' ');
+  for (size_t i = 0; i < countof(result); i++) {
+    if (result[i] != fgp[i])
+      fputs("\x1b[31m", stdout);
+    printf("%16lx\x1b[m%c", result[i], (i & 3) == 3 ? '\n' : ' ');
+  }
   putchar('\n');
 #endif
 

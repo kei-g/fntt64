@@ -19,6 +19,7 @@ CFLAGS+=-std=c2x
 LD=clang
 LDFLAGS+=-Wl,-s
 LDFLAGS+=-fuse-ld=lld
+LDFLAGS+=-lgmp
 
 C_SOURCES=$(wildcard *.c)
 
