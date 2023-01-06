@@ -25,13 +25,13 @@ static uint64_t mul_low_neg_mod_p(uint64_t a, int b);
 static uint64_t mul_mid_mod_p(uint64_t a, int b);
 static uint64_t mul_mid_neg_mod_p(uint64_t a, int b);
 static uint64_t negate_mod_p(uint64_t a, int b);
-static void ntt(uint64_t *__restrict dst, const uint64_t *__restrict src,
+static void ntt(uint64_t *restrict dst, const uint64_t *restrict src,
                 const ntt_elem_t elem[], const uint64_t t[]);
-static void pack(uint64_t *__restrict dst, const uint64_t *__restrict src);
+static void pack(uint64_t *restrict dst, const uint64_t *restrict src);
 static uint64_t return_1st_arg(uint64_t a, int b);
 static uint64_t reverse_bits(uint64_t a);
 static uint64_t sub_mod_p(uint128_u *a, uint64_t b);
-static void unpack(uint64_t *__restrict dst, const uint64_t *__restrict src);
+static void unpack(uint64_t *restrict dst, const uint64_t *restrict src);
 
 int main(int argc, const char *argv[]) {
   fputs("[src]\n", stdout);
@@ -218,7 +218,7 @@ static uint64_t negate_mod_p(uint64_t a, int) {
   return 0xffffffff00000001 - a;
 }
 
-static void ntt(uint64_t *__restrict dst, const uint64_t *__restrict src,
+static void ntt(uint64_t *restrict dst, const uint64_t *restrict src,
                 const ntt_elem_t elem[], const uint64_t t[]) {
   uint64_t tmp[64], *to[] = {dst, tmp, dst, tmp, dst, tmp};
   const uint64_t *from[] = {src, dst, tmp, dst, tmp, dst};
@@ -234,7 +234,7 @@ static void ntt(uint64_t *__restrict dst, const uint64_t *__restrict src,
     dst[i] = tmp[t[i]];
 }
 
-static void pack(uint64_t *__restrict dst, const uint64_t *__restrict src) {
+static void pack(uint64_t *restrict dst, const uint64_t *restrict src) {
   // pack from 63 64bits-integers to 64 63bits-integers
   dst[0] = src[0] >> 1;
   for (uint64_t i = 1, j = 63; i < 62; i++, j--)
@@ -264,7 +264,7 @@ static uint64_t sub_mod_p(uint128_u *a, uint64_t b) {
 /**
  * XXX: This implement may not work properly due to it not being tested.
  */
-static void unpack(uint64_t *__restrict dst, const uint64_t *__restrict src) {
+static void unpack(uint64_t *restrict dst, const uint64_t *restrict src) {
   // carry forward
   uint64_t carry = 0, tmp[65];
   for (int i = 0; i < 65; i++) {
