@@ -235,6 +235,7 @@ static void ntt(uint64_t *__restrict dst, const uint64_t *__restrict src,
 }
 
 static void pack(uint64_t *__restrict dst, const uint64_t *__restrict src) {
+  // pack from 63 64bits-integers to 64 63bits-integers
   dst[0] = src[0] >> 1;
   for (uint64_t i = 1, j = 63; i < 62; i++, j--)
     dst[i] = (src[i - 1] >> j) | ((src[i] << (i + 1)) & 0x7ffffffffffffffful);
@@ -260,7 +261,11 @@ static uint64_t sub_mod_p(uint128_u *a, uint64_t b) {
   return a->lo;
 }
 
+/**
+ * XXX: This implement may not work properly due to it not being tested.
+ */
 static void unpack(uint64_t *__restrict dst, const uint64_t *__restrict src) {
+  // carry forward
   uint64_t carry = 0, tmp[65];
   for (int i = 0; i < 65; i++) {
     uint128_u x = {.lo = i >> 6 ? 0 : src[i]};
@@ -268,6 +273,7 @@ static void unpack(uint64_t *__restrict dst, const uint64_t *__restrict src) {
     carry = (uint64_t)(x.value >> 63);
     tmp[i] = x.lo & 0x7fffffffffffffff;
   }
+  // unpack from 64 63bits-integers to 63 64bits-integers
   for (int i = 0, j = 63; i < 63; i++, j--)
     dst[i] = (tmp[i] & ((1ul << j) - 1)) | (tmp[i + 1] << j);
 }
