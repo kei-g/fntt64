@@ -220,8 +220,8 @@ static uint64_t negate_mod_p(uint64_t a, int) {
 
 static void ntt(uint64_t *__restrict dst, const uint64_t *__restrict src,
                 const ntt_elem_t elem[], const uint64_t t[]) {
-  uint64_t a[64], b[64], *to[] = {a, b, a, b, a, b};
-  const uint64_t *from[] = {src, a, b, a, b, a};
+  uint64_t tmp[64], *to[] = {dst, tmp, dst, tmp, dst, tmp};
+  const uint64_t *from[] = {src, dst, tmp, dst, tmp, dst};
   for (int c = 0, d = 5, e = 32; c < 6; c++, d--, e >>= 1)
     for (int i = 0; i < 64; i++) {
       const uint64_t j = (t[i >> d] + 63) & 63;
@@ -231,7 +231,7 @@ static void ntt(uint64_t *__restrict dst, const uint64_t *__restrict src,
       to[c][i] = add_mod_p(from[c][k], v);
     }
   for (int i = 0; i < 64; i++)
-    dst[i] = b[t[i]];
+    dst[i] = tmp[t[i]];
 }
 
 static void pack(uint64_t *__restrict dst, const uint64_t *__restrict src) {
