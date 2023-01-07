@@ -16,7 +16,10 @@ typedef struct {
 } ntt_elem_t;
 
 static uint64_t add_mod_p(uint64_t a, uint64_t b);
+static void carry_forward(uint64_t *restrict dst, const uint64_t *restrict src);
+static uint64_t divide(uint64_t *restrict dst, const uint64_t *restrict src);
 static void init(ntt_elem_t *forwardNTT, ntt_elem_t *inverseNTT, uint64_t *t);
+static void join(uint64_t *restrict dst, const uint64_t *restrict src);
 static uint64_t mul_mod_p(uint64_t a, uint64_t b);
 static uint64_t mul_high_mod_p(uint64_t a, int b);
 static uint64_t mul_high_neg_mod_p(uint64_t a, int b);
@@ -27,19 +30,23 @@ static uint64_t mul_mid_neg_mod_p(uint64_t a, int b);
 static uint64_t negate_mod_p(uint64_t a, int b);
 static void ntt(uint64_t *restrict dst, const uint64_t *restrict src,
                 const ntt_elem_t elem[], const uint64_t t[]);
-static void pack(uint64_t *restrict dst, const uint64_t *restrict src);
 static uint64_t return_1st_arg(uint64_t a, int b);
 static uint64_t reverse_bits(uint64_t a);
 static uint64_t sub_mod_p(uint128_u *a, uint64_t b);
-static void unpack(uint64_t *restrict dst, const uint64_t *restrict src);
+
+#ifndef countof
+  #define countof(arr) (sizeof(arr) / sizeof(arr[0]))
+#endif /* countof */
 
 int main(int argc, const char *argv[]) {
   fputs("[src]\n", stdout);
-  uint64_t src[126] = {0};
-  for (int i = 1; i < argc; i++) {
+  uint64_t src[30] = {0};
+  for (int i = 0; i + 1 < argc && i < (int)countof(src); i++) {
     char *ep;
-    src[i - 1] = strtoul(argv[i], &ep, 10);
-    printf("%16lx%c", src[i - 1], ((i - 1) & 3) == 3 ? '\n' : ' ');
+    src[i] = strtoul(argv[i + 1], &ep, 10);
+    src[14] &= ~(14ul << 60);
+    src[29] &= 0xffffffff;
+    printf("%16lx%c", src[i], (i & 3) == 3 ? '\n' : ' ');
   }
   putchar('\n');
   putchar('\n');
@@ -52,7 +59,7 @@ int main(int argc, const char *argv[]) {
   uint64_t f[64] = {3, 6, 9, 5};
 #else
   uint64_t f[64];
-  pack(f, src);
+  f[32] = divide(f, src);
 #endif
   fputs("[f]\n", stdout);
   for (int i = 0; i < 64; i++)
@@ -63,7 +70,7 @@ int main(int argc, const char *argv[]) {
   uint64_t g[64] = {5, 4, 6, 2};
 #else
   uint64_t g[64];
-  pack(g, src + 63);
+  divide(g, src + 15);
 #endif
   fputs("[g]\n", stdout);
   for (int i = 0; i < 64; i++)
@@ -114,10 +121,10 @@ int main(int argc, const char *argv[]) {
 
 #ifdef _TEST
 #else
-  uint64_t result[63];
+  uint64_t result[30];
   fputs("[result]\n", stdout);
-  unpack(result, fg);
-  for (int i = 0; i < 63; i++)
+  join(result, fg);
+  for (size_t i = 0; i < countof(result); i++)
     printf("%16lx%c", result[i], (i & 3) == 3 ? '\n' : ' ');
   putchar('\n');
 #endif
@@ -129,6 +136,37 @@ static uint64_t add_mod_p(uint64_t a, uint64_t b) {
   uint128_u c = {.lo = a};
   c.value += b;
   return mod_p(&c);
+}
+
+static void carry_forward(uint64_t *restrict dst,
+                          const uint64_t *restrict src) {
+  uint64_t carry = 0;
+  for (int i = 0; i < 64; i++) {
+    uint128_u x = {.lo = src[i]};
+    x.value += carry;
+    carry = (uint64_t)(x.value >> 29);
+    dst[i] = x.lo & 0x1fffffff;
+  }
+  dst[64] = carry;
+}
+
+static uint64_t divide(uint64_t *restrict dst, const uint64_t *restrict src) {
+  for (int i = 0, j = 0, k = 0; i < 32; i++) {
+    const int a = k + 29;
+    if (a < 64) {
+      dst[i] = (src[j] >> k) & 0x1fffffff;
+      k = a;
+    }
+    else {
+      const int b = 64 - k;
+      dst[i] = src[j++] >> k;
+      dst[i] |= (src[j] << b) & 0x1fffffff;
+      k = 29 - b;
+    }
+  }
+  for (int i = 32; i < 64; i++)
+    dst[i] = 0;
+  return (src[14] >> 32) & 0x1fffffff;
 }
 
 static void init(ntt_elem_t *forwardNTT, ntt_elem_t *inverseNTT, uint64_t *t) {
@@ -146,6 +184,17 @@ static void init(ntt_elem_t *forwardNTT, ntt_elem_t *inverseNTT, uint64_t *t) {
   for (int i = 0; i < 63; i++)
     inverseNTT[i] = forwardNTT[62 - i];
   inverseNTT[63] = forwardNTT[63];
+}
+
+static void join(uint64_t *restrict dst, const uint64_t *restrict src) {
+  uint64_t tmp[65];
+  carry_forward(tmp, src);
+  for (uint8_t i = 0, j = 0, k = 0; i < 29; i++, j--, k = 93 - k) {
+    dst[i] = tmp[j++] >> k;
+    for (k = 29 - k; k < 64; j++, k += 29)
+      dst[i] |= tmp[j] << k;
+  }
+  dst[29] = tmp[64];
 }
 
 static uint64_t mul_mod_p(uint64_t a, uint64_t b) {
@@ -234,15 +283,6 @@ static void ntt(uint64_t *restrict dst, const uint64_t *restrict src,
     dst[i] = tmp[t[i]];
 }
 
-static void pack(uint64_t *restrict dst, const uint64_t *restrict src) {
-  // pack from 63 64bits-integers to 64 63bits-integers
-  dst[0] = src[0] >> 1;
-  for (uint64_t i = 1, j = 63; i < 62; i++, j--)
-    dst[i] = (src[i - 1] >> j) | ((src[i] << (i + 1)) & 0x7ffffffffffffffful);
-  dst[62] = src[61] >> 1;
-  dst[63] = src[62] & 0x7ffffffffffffffful;
-}
-
 static uint64_t return_1st_arg(uint64_t a, int) {
   return a;
 }
@@ -259,22 +299,4 @@ static uint64_t sub_mod_p(uint128_u *a, uint64_t b) {
   if (0xffffffff00000001 <= a->value)
     a->value -= 0xffffffff00000001;
   return a->lo;
-}
-
-/**
- * XXX: This implement may not work properly due to it not being tested.
- */
-static void unpack(uint64_t *restrict dst, const uint64_t *restrict src) {
-  // carry forward
-  uint64_t carry = 0, tmp[65];
-  for (int i = 0; i < 65; i++) {
-    uint128_u x = {.lo = i >> 6 ? 0 : src[i]};
-    x.value += carry;
-    carry = (uint64_t)(x.value >> 63);
-    tmp[i] = x.lo & 0x7fffffffffffffff;
-  }
-
-  // unpack from 64 63bits-integers to 63 64bits-integers
-  for (long i = 0, j = 63, k = 0x7fffffffffffffff; i < 63; i++, j--, k >>= 1)
-    dst[i] = (tmp[i] & k) | (tmp[i + 1] << j);
 }
