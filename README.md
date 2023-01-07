@@ -6,6 +6,8 @@ $7^{2^{26}\left(2^{32}-1\right)}\equiv{2^{39}}\mod{2^{64}-2^{32}+1}$
 
 ## CI Status
 
+| Action | Status |
+|-|-|
 | Build | [![GitHub CI (Build)][github-build-image]][github-build-url] |
 | CodeQL | [![GitHub CI (CodeQL)][github-codeql-image]][github-codeql-url] |
 | Coverage | [![GitHub CI (Coverage)][github-coverage-image]][github-coverage-url] |
