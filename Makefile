@@ -16,6 +16,9 @@ CFLAGS+=-fno-use-cxa-atexit
 CFLAGS+=-pedantic
 CFLAGS+=-std=c2x
 
+COVFLAGS+=-fcoverage-mapping
+COVFLAGS+=-fprofile-instr-generate
+
 LD=clang
 LDFLAGS+=-Wl,-s
 LDFLAGS+=-fuse-ld=lld
@@ -28,15 +31,34 @@ TARGETS+=fntt64
 all: $(TARGETS)
 
 clean:
-	$(RM) $(OBJECTS) $(TARGETS)
+	$(RM) $(OBJECTS) $(TARGETS) *.cov *.profile *.v
+
+coverage: fntt64.profile
 
 test: $(TARGETS)
 	@./fntt64 $(shell for i in $(shell seq 30); do head -c8 < /dev/urandom | od -t uL | xargs | cut -d' ' -f2; done | xargs)
 
-.PHONY: all clean test
+.PHONY: all clean coverage test
+
+.SUFFIXES: .c .cov .pd .pr .profile .v
 
 .c.o:
 	$(CC) $(sort $(CFLAGS)) -c $< -o $(<:%.c=%.o)
 
+.c.v:
+	$(CC) $(sort $(CFLAGS) $(COVFLAGS)) -c $< -o $(<:%.c=%.v)
+
+.cov.pr:
+	@LLVM_PROFILE_FILE=$(<:%.cov=%.pr) ./$< $(shell for i in $(shell seq 30); do head -c8 < /dev/urandom | od -t uL | xargs | cut -d' ' -f2; done | xargs)
+
+.pd.profile:
+	llvm-cov show ./$(<:%.pd=%.cov) -instr-profile=$< > $(<:%.pd=%.profile)
+
+.pr.pd:
+	llvm-profdata merge -sparse $< -o $(<:%.pr=%.pd)
+
 fntt64: mod_p.o ntt.o
 	$(LD) $(sort $(LDFLAGS)) -o $@ $^
+
+fntt64.cov: mod_p.v ntt.v
+	$(LD) $(sort $(COVFLAGS) $(LDFLAGS)) -o $@ $^
