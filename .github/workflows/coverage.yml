@@ -4,11 +4,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Update package database
-        run: apt-get update -yqq
+        run: sudo apt-get update -yqq
       - name: Upgrade packages
-        run: apt-get upgrade -yqq
+        run: sudo apt-get upgrade -yqq
       - name: Install llvm
-        run: apt-get install --no-install-recommends --reinstall -yqq llvm
+        run: sudo apt-get install --no-install-recommends --reinstall -yqq llvm
       - name: Checkout
         uses: actions/checkout@v3
         with:
