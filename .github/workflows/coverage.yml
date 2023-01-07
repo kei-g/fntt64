@@ -1,0 +1,20 @@
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: Create coverage reports
+        run: make coverage
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage-report-${{ github.event.repository.name }}
+          path: fntt64.profile
+name: Coverage
+on:
+  pull_request:
+  push:

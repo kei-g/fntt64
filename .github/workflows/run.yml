@@ -1,0 +1,15 @@
+jobs:
+  run:
+    name: Run the test script
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: Run the test script
+        run: make test
+name: Run
+on:
+  pull_request:
+  push:
