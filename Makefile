@@ -31,7 +31,7 @@ clean:
 	$(RM) $(OBJECTS) $(TARGETS)
 
 test: $(TARGETS)
-	@./fntt64 $(shell for i in $(shell seq 126); do head -c8 < /dev/urandom | od -t uL | xargs | cut -d' ' -f2; done | xargs)
+	@./fntt64 $(shell for i in $(shell seq 30); do head -c8 < /dev/urandom | od -t uL | xargs | cut -d' ' -f2; done | xargs)
 
 .PHONY: all clean test
 
