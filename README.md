@@ -2,7 +2,11 @@
 
 `fntt64` - Fast Number Theoretic Transform 64x64
 
-$7^{2^{26}\left(2^{32}-1\right)}\equiv{2^{39}}\mod{2^{64}-2^{32}+1}$
+## Abstract
+
+$$
+7^{2^{26}\left(2^{32}-1\right)}\equiv{2^{39}}\mod{2^{64}-2^{32}+1}
+$$
 
 ## CI Status
 
