@@ -52,7 +52,7 @@ int main(int argc, const char *argv[]) {
     char *ep;
     src[i] = strtoul(argv[i + 1], &ep, 10);
     src[14] &= ~(14ul << 60);
-    src[29] &= 0xffffffff;
+    src[29] &= UINT32_MAX;
     printf("%16lx%c", src[i], (i & 3) == 3 ? '\n' : ' ');
   }
   putchar('\n');
@@ -258,8 +258,8 @@ static uint64_t mul_high_mod_p(uint64_t a, int b) {
   // (a << b) * 2^{64} => 2^{32}-1
   // (a >> (32 - b)) * 2^{96} => -1
   // (a >> (64 - b)) * 2^{128} => -2^{32}
-  const uint64_t c0 = (a << b) & 0xffffffff;
-  const uint64_t c1 = (a >> (32 - b)) & 0xffffffff;
+  const uint64_t c0 = (a << b) & UINT32_MAX;
+  const uint64_t c1 = (a >> (32 - b)) & UINT32_MAX;
   const uint64_t c2 = a >> (64 - b);
   if (c0 < c2) {
     uint128_u c = {.lo = c2 - c0};
@@ -283,8 +283,8 @@ static uint64_t mul_low_mod_p(uint64_t a, int b) {
   // (a << b)
   // (a >> (32 - b)) * 2^{32}
   // (a >> (64 - b)) * 2^{64} => 2^{32}-1
-  const uint64_t c0 = (a << b) & 0xffffffff;
-  const uint64_t c1 = (a >> (32 - b)) & 0xffffffff;
+  const uint64_t c0 = (a << b) & UINT32_MAX;
+  const uint64_t c1 = (a >> (32 - b)) & UINT32_MAX;
   const uint64_t c2 = a >> (64 - b);
   uint128_u c = {.lo = c1 + c2};
   c.value <<= 32;
@@ -301,8 +301,8 @@ static uint64_t mul_mid_mod_p(uint64_t a, int b) {
   // (a << b) * 2^{32}
   // (a >> (32 - b)) * 2^{64} => 2^{32}-1
   // (a >> (64 - b)) * 2^{96} => -1
-  const uint64_t c0 = (a << b) & 0xffffffff;
-  const uint64_t c1 = (a >> (32 - b)) & 0xffffffff;
+  const uint64_t c0 = (a << b) & UINT32_MAX;
+  const uint64_t c1 = (a >> (32 - b)) & UINT32_MAX;
   const uint64_t c2 = a >> (64 - b);
   uint128_u c = {.lo = c0 + c1};
   c.value <<= 32;
