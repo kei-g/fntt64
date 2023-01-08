@@ -2,13 +2,13 @@
 
 `fntt64` - Fast Number Theoretic Transform 64x64
 
-## Abstract
+## :magic_wand: Abstract
 
 $$
 7^{2^{26}\left(2^{32}-1\right)}\equiv{2^{39}}\mod{2^{64}-2^{32}+1}
 $$
 
-## CI Status
+## :green_heart: CI Status
 
 | Action | Status |
 |:-:|:-:|
@@ -17,7 +17,7 @@ $$
 | **Coverage** | [![GitHub CI (Coverage)][github-coverage-image]][github-coverage-url] |
 | **Run** | [![GitHub CI (Run)][github-run-image]][github-run-url] |
 
-## License
+## :page_facing_up: License
 
 The scripts and documentation in this project are released under the [BSD-3-Clause License](https://github.com/kei-g/fntt64/blob/main/LICENSE)
 
