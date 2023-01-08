@@ -45,6 +45,8 @@ static void swap_for_inverse_mod_p(uint64_t array[2], const uint64_t value);
   #define countof(arr) (sizeof(arr) / sizeof(arr[0]))
 #endif /* countof */
 
+#define UINT29_MAX 0x1fffffff
+
 int main(int argc, const char *argv[]) {
   fputs("[src]\n", stdout);
   uint64_t src[30] = {0};
@@ -183,7 +185,7 @@ static void carry_forward(uint64_t *restrict dst,
     uint128_u x = {.lo = src[i]};
     x.value += carry;
     carry = (uint64_t)(x.value >> 29);
-    dst[i] = x.lo & 0x1fffffff;
+    dst[i] = x.lo & UINT29_MAX;
   }
   dst[64] = carry;
 }
@@ -192,19 +194,19 @@ static uint64_t divide(uint64_t *restrict dst, const uint64_t *restrict src) {
   for (int i = 0, j = 0, k = 0; i < 32; i++) {
     const int a = k + 29;
     if (a < 64) {
-      dst[i] = (src[j] >> k) & 0x1fffffff;
+      dst[i] = (src[j] >> k) & UINT29_MAX;
       k = a;
     }
     else {
       const int b = 64 - k;
       dst[i] = src[j++] >> k;
-      dst[i] |= (src[j] << b) & 0x1fffffff;
+      dst[i] |= (src[j] << b) & UINT29_MAX;
       k = 29 - b;
     }
   }
   for (int i = 32; i < 64; i++)
     dst[i] = 0;
-  return (src[14] >> 32) & 0x1fffffff;
+  return (src[14] >> 32) & UINT29_MAX;
 }
 
 static void init(ntt_elem_t *forwardNTT, ntt_elem_t *inverseNTT, uint64_t *t) {
