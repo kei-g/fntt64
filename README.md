@@ -13,6 +13,10 @@ $7^{2^{26}\left(2^{32}-1\right)}\equiv{2^{39}}\mod{2^{64}-2^{32}+1}$
 | **Coverage** | [![GitHub CI (Coverage)][github-coverage-image]][github-coverage-url] |
 | **Run** | [![GitHub CI (Run)][github-run-image]][github-run-url] |
 
+## License
+
+The scripts and documentation in this project are released under the [BSD-3-Clause License](https://github.com/kei-g/fntt64/blob/main/LICENSE)
+
 [github-build-image]:https://github.com/kei-g/fntt64/actions/workflows/build.yml/badge.svg
 [github-build-url]:https://github.com/kei-g/fntt64/actions/workflows/build.yml
 [github-codeql-image]:https://github.com/kei-g/fntt64/actions/workflows/codeql.yml/badge.svg
