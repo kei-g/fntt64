@@ -7,9 +7,13 @@
   #define ASSERT(expr)
 #endif
 
-#include <gmp.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#define _USE_GMP
+#ifdef _USE_GMP
+  #include <gmp.h>
+#endif
 
 typedef struct {
   uint64_t (*proc)(uint64_t, int);
@@ -120,6 +124,7 @@ int main(int argc, const char *argv[]) {
   }
   putchar('\n');
 
+#ifdef _USE_GMP
   mpz_t f2, g2, fg2;
   mpz_roinit_n(f2, src, 15);
   mpz_roinit_n(g2, src + 15, 15);
@@ -133,6 +138,7 @@ int main(int argc, const char *argv[]) {
   if (len & 3)
     putchar('\n');
   putchar('\n');
+#endif
 
 #ifdef _TEST
 #else
@@ -140,10 +146,22 @@ int main(int argc, const char *argv[]) {
   fputs("[result]\n", stdout);
   join(result, fg);
   for (size_t i = 0; i < countof(result); i++) {
+  #ifdef _USE_GMP
     if (result[i] != fgp[i])
       fputs("\x1b[31m", stdout);
+  #endif
     printf("%16lx\x1b[m%c", result[i], (i & 3) == 3 ? '\n' : ' ');
   }
+  putchar('\n');
+#endif
+
+#ifdef _USE_GMP
+  putchar('\n');
+  mpz_out_str(stdout, 10, f2);
+  fputs(" * ", stdout);
+  mpz_out_str(stdout, 10, g2);
+  fputs(" = ", stdout);
+  mpz_out_str(stdout, 10, fg2);
   putchar('\n');
 #endif
 
