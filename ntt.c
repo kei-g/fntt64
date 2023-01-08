@@ -24,6 +24,7 @@ static uint64_t add_mod_p(uint64_t a, uint64_t b);
 static void carry_forward(uint64_t *restrict dst, const uint64_t *restrict src);
 static uint64_t divide(uint64_t *restrict dst, const uint64_t *restrict src);
 static void init(ntt_elem_t *forwardNTT, ntt_elem_t *inverseNTT, uint64_t *t);
+static uint64_t inverse_mod_p(uint64_t value);
 static void join(uint64_t *restrict dst, const uint64_t *restrict src);
 static uint64_t mul_mod_p(uint64_t a, uint64_t b);
 static uint64_t mul_high_mod_p(uint64_t a, int b);
@@ -38,6 +39,7 @@ static void ntt(uint64_t *restrict dst, const uint64_t *restrict src,
 static uint64_t return_1st_arg(uint64_t a, int b);
 static uint64_t reverse_bits(uint64_t a);
 static uint64_t sub_mod_p(uint128_u *a, uint64_t b);
+static void swap_for_inverse_mod_p(uint64_t array[2], const uint64_t value);
 
 #ifndef countof
   #define countof(arr) (sizeof(arr) / sizeof(arr[0]))
@@ -107,18 +109,18 @@ int main(int argc, const char *argv[]) {
   uint64_t fg[64];
   ntt(fg, FG, inverseNTT, t);
   fputs("[fg]\n", stdout);
+  const uint64_t inv = inverse_mod_p(64);
 #ifdef _TEST
   uint64_t r = 0;
 #endif
   for (int i = 0; i < 64; i++) {
-    // 64x = 1 mod p => x = 18158513693329981441 = 0xfbffffff04000001
 #ifdef _TEST
-    fg[i] = mul_mod_p(fg[i], 0xfbffffff04000001ul);
+    fg[i] = mul_mod_p(fg[i], inv);
     const uint64_t x = fg[i] + r;
     r = x / 10;
     printf("%16lu%c", x % 10, (i & 3) == 3 ? '\n' : ' ');
 #else
-    fg[i] = mul_mod_p(fg[i], 0xfbffffff04000001ul);
+    fg[i] = mul_mod_p(fg[i], inv);
     printf("%16lx%c", fg[i], (i & 3) == 3 ? '\n' : ' ');
 #endif
   }
@@ -220,6 +222,18 @@ static void init(ntt_elem_t *forwardNTT, ntt_elem_t *inverseNTT, uint64_t *t) {
   for (int i = 0; i < 63; i++)
     inverseNTT[i] = forwardNTT[62 - i];
   inverseNTT[63] = forwardNTT[63];
+}
+
+static uint64_t inverse_mod_p(uint64_t value) {
+  uint64_t main[] = {value, 0xffffffff00000001ul}, tributary[] = {1, 0};
+  while (main[1]) {
+    const uint64_t quotient = main[0] / main[1];
+    swap_for_inverse_mod_p(main, quotient);
+    swap_for_inverse_mod_p(tributary, quotient);
+  }
+  if (tributary[0] >> 63)
+    tributary[0] += 0xffffffff00000001ul;
+  return tributary[0];
 }
 
 static void join(uint64_t *restrict dst, const uint64_t *restrict src) {
@@ -335,4 +349,10 @@ static uint64_t sub_mod_p(uint128_u *a, uint64_t b) {
   if (0xffffffff00000001 <= a->value)
     a->value -= 0xffffffff00000001;
   return a->lo;
+}
+
+static void swap_for_inverse_mod_p(uint64_t array[2], const uint64_t value) {
+  const uint64_t divisor = array[1];
+  array[1] = array[0] - value * divisor;
+  array[0] = divisor;
 }
