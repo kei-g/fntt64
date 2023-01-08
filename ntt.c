@@ -225,14 +225,14 @@ static void init(ntt_elem_t *forwardNTT, ntt_elem_t *inverseNTT, uint64_t *t) {
 }
 
 static uint64_t inverse_mod_p(uint64_t value) {
-  uint64_t main[] = {value, 0xffffffff00000001ul}, tributary[] = {1, 0};
+  uint64_t main[] = {value, PRIME}, tributary[] = {1, 0};
   while (main[1]) {
     const uint64_t quotient = main[0] / main[1];
     swap_for_inverse_mod_p(main, quotient);
     swap_for_inverse_mod_p(tributary, quotient);
   }
   if (tributary[0] >> 63)
-    tributary[0] += 0xffffffff00000001ul;
+    tributary[0] += PRIME;
   return tributary[0];
 }
 
@@ -265,7 +265,7 @@ static uint64_t mul_high_mod_p(uint64_t a, int b) {
     uint128_u c = {.lo = c2 - c0};
     c.value <<= 32;
     c.value += c0 + c1;
-    return 0xffffffff00000001 - mod_p(&c);
+    return PRIME - mod_p(&c);
   }
   else {
     uint128_u c = {.lo = c0 - c2};
@@ -275,7 +275,7 @@ static uint64_t mul_high_mod_p(uint64_t a, int b) {
 }
 
 static uint64_t mul_high_neg_mod_p(uint64_t a, int b) {
-  return 0xffffffff00000001 - mul_high_mod_p(a, b);
+  return PRIME - mul_high_mod_p(a, b);
 }
 
 static uint64_t mul_low_mod_p(uint64_t a, int b) {
@@ -293,7 +293,7 @@ static uint64_t mul_low_mod_p(uint64_t a, int b) {
 }
 
 static uint64_t mul_low_neg_mod_p(uint64_t a, int b) {
-  return 0xffffffff00000001 - mul_low_mod_p(a, b);
+  return PRIME - mul_low_mod_p(a, b);
 }
 
 static uint64_t mul_mid_mod_p(uint64_t a, int b) {
@@ -310,11 +310,11 @@ static uint64_t mul_mid_mod_p(uint64_t a, int b) {
 }
 
 static uint64_t mul_mid_neg_mod_p(uint64_t a, int b) {
-  return 0xffffffff00000001 - mul_mid_mod_p(a, b);
+  return PRIME - mul_mid_mod_p(a, b);
 }
 
 static uint64_t negate_mod_p(uint64_t a, int) {
-  return 0xffffffff00000001 - a;
+  return PRIME - a;
 }
 
 static void ntt(uint64_t *restrict dst, const uint64_t *restrict src,
@@ -344,10 +344,10 @@ static uint64_t reverse_bits(uint64_t a) {
 
 static uint64_t sub_mod_p(uint128_u *a, uint64_t b) {
   while (a->value < b)
-    a->value += 0xffffffff00000001;
+    a->value += PRIME;
   a->value -= b;
-  if (0xffffffff00000001 <= a->value)
-    a->value -= 0xffffffff00000001;
+  if (PRIME <= a->value)
+    a->value -= PRIME;
   return a->lo;
 }
 

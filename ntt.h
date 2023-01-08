@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define PRIME 0xffffffff00000001ul
+
 typedef union {
   uint32_t data[4];
   struct {
