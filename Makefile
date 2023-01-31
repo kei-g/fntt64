@@ -13,6 +13,7 @@ CFLAGS+=-fno-rtti
 CFLAGS+=-fno-stack-protector
 CFLAGS+=-fno-unwind-tables
 CFLAGS+=-fno-use-cxa-atexit
+CFLAGS+=-isystem/usr/local/include
 CFLAGS+=-pedantic
 CFLAGS+=-std=c2x
 
@@ -20,6 +21,7 @@ COVFLAGS+=-fcoverage-mapping
 COVFLAGS+=-fprofile-instr-generate
 
 LD=clang
+LDFLAGS+=-L/usr/local/lib
 LDFLAGS+=-Wl,-s
 LDFLAGS+=-fuse-ld=lld
 LDFLAGS+=-lgmp
@@ -36,7 +38,7 @@ clean:
 coverage: fntt64.profile
 
 test: $(TARGETS)
-	@./fntt64 $(shell for i in $(shell seq 30); do head -c8 < /dev/urandom | od -t uL | xargs | cut -d' ' -f2; done | xargs)
+	@./fntt64 $(shell for i in $(shell seq 30); do head -c8 < /dev/urandom | hexdump -v -e '/1 "%02x"' | xargs; done | xargs)
 
 .PHONY: all clean coverage test
 
@@ -49,7 +51,7 @@ test: $(TARGETS)
 	$(CC) $(sort $(CFLAGS) $(COVFLAGS)) -c $< -o $(<:%.c=%.v)
 
 .cov.pr:
-	@LLVM_PROFILE_FILE=$(<:%.cov=%.pr) ./$< $(shell for i in $(shell seq 30); do head -c8 < /dev/urandom | od -t uL | xargs | cut -d' ' -f2; done | xargs)
+	@LLVM_PROFILE_FILE=$(<:%.cov=%.pr) ./$< $(shell for i in $(shell seq 30); do head -c8 < /dev/urandom | hexdump -v -e '/1 "%02x"' | xargs; done | xargs)
 
 .pd.profile:
 	llvm-cov show ./$(<:%.pd=%.cov) -instr-profile=$< > $(<:%.pd=%.profile)

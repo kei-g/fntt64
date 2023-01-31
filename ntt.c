@@ -52,7 +52,7 @@ int main(int argc, const char *argv[]) {
   uint64_t src[30] = {0};
   for (int i = 0; i + 1 < argc && i < (int)countof(src); i++) {
     char *ep;
-    src[i] = strtoul(argv[i + 1], &ep, 10);
+    src[i] = strtoul(argv[i + 1], &ep, 16);
     src[14] &= ~(14ul << 60);
     src[29] &= UINT32_MAX;
     printf("%16lx%c", src[i], (i & 3) == 3 ? '\n' : ' ');
