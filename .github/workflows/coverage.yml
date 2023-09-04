@@ -10,7 +10,7 @@ jobs:
       - name: Install llvm
         run: sudo apt-get install --no-install-recommends --reinstall -yqq llvm
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
       - name: Create coverage reports
